@@ -9,14 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^6.14.0",
-    "next": "^15.5.2",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "twilio": "^5.8.0",
-    "tailwindcss": "^4",
-    "autoprefixer": "^10.4.20"
-  },
+  "@prisma/client": "^6.14.0",
+  "autoprefixer": "^10.4.20",
+  "next": "^15.5.2",
+  "react": "19.1.0",
+  "react-dom": "19.1.0",
+  "twilio": "^5.8.0",
+  "tailwindcss": "^4",
+  "@tailwindcss/postcss": "^4"
+},
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20.19.12",
