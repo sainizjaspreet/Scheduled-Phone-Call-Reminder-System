@@ -1,120 +1,117 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { validateE164Phone } from '@/lib/phone-utils'
+import { useState } from "react";
+import { validateE164Phone } from "@/lib/phone-utils";
 
 interface ReminderFormProps {
-  onSuccess: () => void
+  onSuccess: () => void;
 }
 
 export default function ReminderForm({ onSuccess }: ReminderFormProps) {
   const [formData, setFormData] = useState({
-    title: '',
-    primaryPhone: '',
-    backupPhone: '',
-    scheduledAt: ''
-  })
+    title: "",
+    primaryPhone: "",
+    backupPhone: "",
+    scheduledAt: "",
+  });
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = 'Title is required'
+      newErrors.title = "Title is required";
     }
 
     if (!formData.primaryPhone.trim()) {
-      newErrors.primaryPhone = 'Primary phone is required'
+      newErrors.primaryPhone = "Primary phone is required";
     } else if (!validateE164Phone(formData.primaryPhone)) {
       newErrors.primaryPhone =
-        'Phone must be in E.164 format (e.g., +12125551234)'
+        "Phone must be in E.164 format (e.g., +12125551234)";
     }
 
     if (formData.backupPhone && !validateE164Phone(formData.backupPhone)) {
       newErrors.backupPhone =
-        'Phone must be in E.164 format (e.g., +12125551234)'
+        "Phone must be in E.164 format (e.g., +12125551234)";
     }
 
     if (!formData.scheduledAt) {
-      newErrors.scheduledAt = 'Scheduled time is required'
+      newErrors.scheduledAt = "Scheduled time is required";
     } else {
-      const scheduledDate = new Date(formData.scheduledAt)
+      const scheduledDate = new Date(formData.scheduledAt);
       if (isNaN(scheduledDate.getTime())) {
-        newErrors.scheduledAt = 'Invalid date format'
+        newErrors.scheduledAt = "Invalid date format";
       }
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setIsSubmitting(true)
-    setErrors({})
+    setIsSubmitting(true);
+    setErrors({});
 
     try {
-      // ✅ Convert local datetime to proper UTC ISO string
-      const localDate = new Date(formData.scheduledAt)
-
-      const utcDate = new Date(
-        localDate.getTime() - localDate.getTimezoneOffset() * 60000
-      )
+      // ✅ Convert local datetime to UTC ISO string
+      // JavaScript's new Date() interprets datetime-local strings as local time automatically
+      const localDate = new Date(formData.scheduledAt);
 
       const payload = {
         ...formData,
-        scheduledAt: utcDate.toISOString()
-      }
+        scheduledAt: localDate.toISOString(),
+      };
 
-      const response = await fetch('/api/reminders', {
-        method: 'POST',
+      const response = await fetch("/api/reminders", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload)
-      })
+        body: JSON.stringify(payload),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        setErrors({ submit: data.error || 'Failed to create reminder' })
-        return
+        setErrors({ submit: data.error || "Failed to create reminder" });
+        return;
       }
 
       setFormData({
-        title: '',
-        primaryPhone: '',
-        backupPhone: '',
-        scheduledAt: ''
-      })
+        title: "",
+        primaryPhone: "",
+        backupPhone: "",
+        scheduledAt: "",
+      });
 
-      onSuccess()
+      onSuccess();
     } catch (error) {
-      setErrors({ submit: 'An error occurred. Please try again.' })
+      setErrors({ submit: "An error occurred. Please try again." });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }))
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
-  }
+  };
 
   const getMinDateTime = () => {
-    const now = new Date()
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset())
-    return now.toISOString().slice(0, 16)
-  }
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  };
 
   return (
     <form
@@ -139,10 +136,10 @@ export default function ReminderForm({ onSuccess }: ReminderFormProps) {
           value={formData.title}
           onChange={handleChange}
           className={`w-full px-3 py-2 border rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.title ? 'border-red-500' : 'border-gray-300'
+            errors.title ? "border-red-500" : "border-gray-300"
           }`}
           placeholder="Doctor's appointment"
-          style={{ colorScheme: 'light' }}
+          style={{ colorScheme: "light" }}
         />
         {errors.title && (
           <p className="mt-1 text-sm text-red-600">{errors.title}</p>
@@ -163,15 +160,13 @@ export default function ReminderForm({ onSuccess }: ReminderFormProps) {
           value={formData.primaryPhone}
           onChange={handleChange}
           className={`w-full px-3 py-2 border rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.primaryPhone ? 'border-red-500' : 'border-gray-300'
+            errors.primaryPhone ? "border-red-500" : "border-gray-300"
           }`}
           placeholder="+12125551234"
-          style={{ colorScheme: 'light' }}
+          style={{ colorScheme: "light" }}
         />
         {errors.primaryPhone && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.primaryPhone}
-          </p>
+          <p className="mt-1 text-sm text-red-600">{errors.primaryPhone}</p>
         )}
       </div>
 
@@ -189,15 +184,13 @@ export default function ReminderForm({ onSuccess }: ReminderFormProps) {
           value={formData.backupPhone}
           onChange={handleChange}
           className={`w-full px-3 py-2 border rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.backupPhone ? 'border-red-500' : 'border-gray-300'
+            errors.backupPhone ? "border-red-500" : "border-gray-300"
           }`}
           placeholder="+12125555678"
-          style={{ colorScheme: 'light' }}
+          style={{ colorScheme: "light" }}
         />
         {errors.backupPhone && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.backupPhone}
-          </p>
+          <p className="mt-1 text-sm text-red-600">{errors.backupPhone}</p>
         )}
       </div>
 
@@ -216,13 +209,11 @@ export default function ReminderForm({ onSuccess }: ReminderFormProps) {
           onChange={handleChange}
           min={getMinDateTime()}
           className={`w-full px-3 py-2 border rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.scheduledAt ? 'border-red-500' : 'border-gray-300'
+            errors.scheduledAt ? "border-red-500" : "border-gray-300"
           }`}
         />
         {errors.scheduledAt && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.scheduledAt}
-          </p>
+          <p className="mt-1 text-sm text-red-600">{errors.scheduledAt}</p>
         )}
       </div>
 
@@ -237,12 +228,12 @@ export default function ReminderForm({ onSuccess }: ReminderFormProps) {
         disabled={isSubmitting}
         className={`w-full py-2 px-4 rounded-md text-white font-medium transition-colors ${
           isSubmitting
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700'
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
-        {isSubmitting ? 'Creating...' : 'Create Reminder'}
+        {isSubmitting ? "Creating..." : "Create Reminder"}
       </button>
     </form>
-  )
+  );
 }
